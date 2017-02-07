@@ -9,7 +9,7 @@
               </div>
               <div class="modal-body">
                 <p>
-                  <textarea name="name" cols="30" rows="10" class="form-control" v-model="newName"></textarea>
+                  <textarea name="name" rows="3" class="form-control" v-model="newName"></textarea>
                 </p>
               </div>
               <div class="modal-footer">
@@ -24,7 +24,7 @@
 
         <div class="form-group">
             <label for="todo">Create Task:</label>
-            <textarea name="title" id="todo" class="form-control" cols="15" rows="5" v-model="todo"></textarea>
+            <textarea name="title" id="todo" class="form-control" rows="1" v-model="todo"></textarea>
         </div>
 
         <div v-if="error" v-text="error.name[0]" class="alert alert-danger"></div>
@@ -33,10 +33,25 @@
 
         <h1>Tasks: </h1>
         <ul class="list-group">
-            <li class="list-item" v-for="todo in todos">
-                <h3 v-text="todo.name"></h3>
-                <button class="btn btn-success" @click="edit(todo.id)">Edit</button>
-                <button class="btn btn-danger" @click="destroy(todo.id)">Delete</button>
+            <li class="list-item"  
+                :class="{'in-progress': inProgress(todo.progress), 'finished': finished(todo.progress)}" 
+                v-for="todo in todos">
+                <h3 v-text="todo.name"></h3><span 
+                    v-show="inProgress(todo.progress)">(In Progress)</span>
+       
+                <button class="pull-right btn btn-primary btn-sm" 
+                        :disabled="todo.progress === 'finished'"
+                        @click="finish(todo)">Finish</button>
+
+                <button class="pull-right btn btn-primary btn-sm" 
+                        :disabled="inProgress(todo.progress)"  
+                        @click="start(todo)">Start</button>
+       
+                <button class="btn btn-success btn-sm" 
+                        @click="edit(todo)">Edit</button>
+       
+                <button class="btn btn-danger btn-sm" 
+                        @click="destroy(todo)">Delete</button>
             </li>
         </ul>
     </div>
@@ -55,7 +70,7 @@
         },
 
         created() {
-            axios.post('api/todos').then(response => this.todos = response.data);
+            axios.post('api/todos').then(({data}) => this.todos = data);
         },
 
         methods: {
@@ -65,15 +80,19 @@
                 };
 
                 axios.post('/todo', todo)
-                        .then((response) => { 
-                            this.todos.push(response.data);
+                        .then(({data}) => { 
+                            this.todos.push(data);
                             this.todo = '';
                         })
-                        .catch((error) => this.error = error.response.data);
+                        .catch((error) => {
+                            this.error = error.response.data
+                            this.hideError();
+
+                        });
             },
 
-            edit(id) {
-                let todo = this.findTodoById(id);
+            edit(todo) {
+                console.log(todo);
                 this.currentTodo = todo;
                 $('.modal').modal('show');
                 this.newName = todo.name;
@@ -85,31 +104,57 @@
                     'name': this.newName
                 };
                 axios.put(`/todo/${id}`, todo)
-                        .then((response) => { 
-                            let todo = this.findTodoById(id);
-                            todo.name = this.newName;
+                        .then(() => { 
+                            this.currentTodo.name = this.newName;
                             this.hideForm();
                         })
                         .catch((error) => { 
                             this.error = error.response.data;
                             this.hideForm();
+
+                            this.hideError();
                         });
             },
 
-            destroy(id) {
-                let todo = this.findTodoById(id);
+            destroy(todo) {
                 let index = this.todos.indexOf(todo);
                 this.todos.splice(index, 1);
 
                 axios.delete(`/todo/${todo.id}`);
             },
 
-            findTodoById(id) {
-               return this.todos.find(todo => todo.id === id)
+            setProgress(todo, progress) {
+                todo.progress = progress;
+                let newProgress = {
+                    'progress': progress,
+                    'todoId': todo.id
+                }
+
+                axios.post(`/progress`, newProgress);
+            },
+
+            start(todo) {
+                this.setProgress(todo, 'in_progress');
+            },
+
+             inProgress(progress) {
+                return progress === 'in_progress';
+            },
+
+            finished(progress) {
+                return progress === 'finished' & progress !== 'strat';
+            },
+
+            finish(todo) {
+                this.setProgress(todo, 'finished');
             },
 
             hideForm() {
                 $('.modal').modal('hide');
+            },
+
+            hideError() {
+                setTimeout(() => this.error = false, 1000);
             }
         },
     }
@@ -118,5 +163,21 @@
 <style>
     ul > li {
         list-style-type: none;
+    }
+    li > button{
+        margin-right: 1em;
+    }
+
+    span {
+        display: block;
+    }
+
+    .in-progress {
+        font-style: italic;
+        color: green;
+    }
+
+    .finished {
+        text-decoration: line-through;
     }
 </style>

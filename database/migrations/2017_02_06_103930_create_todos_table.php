@@ -16,7 +16,7 @@ class CreateTodosTable extends Migration
         Schema::create('todos', function (Blueprint $table) {
             $table->increments('id');
             $table->string('name');
-            $table->integer('progress_id')->unsigned()->index()->default(1);
+            $table->string('progress')->default('not_in_progress');
             $table->timestamps();
         });
     }

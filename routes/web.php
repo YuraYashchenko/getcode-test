@@ -12,3 +12,5 @@
 */
 
 Route::resource('todo', 'TodosController');
+
+Route::post('progress', 'ProgressesController@setProgress');

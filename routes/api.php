@@ -15,5 +15,5 @@ use Illuminate\Http\Request;
 
 
 Route::post('todos', function() {
-	return App\Todo::all();
+	return App\Todo::orderBy('updated_at', 'desc')->get();
 });
