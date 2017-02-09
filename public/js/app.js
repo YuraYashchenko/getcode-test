@@ -12145,6 +12145,12 @@ module.exports = function spread(callback) {
     },
 
 
+    watch: {
+        first: function first() {
+            this.setFirst();
+        }
+    },
+
     methods: {
         setFirst: function setFirst() {
             var _this = this;
@@ -12170,7 +12176,6 @@ module.exports = function spread(callback) {
                 _this2.error = error.response.data;
                 _this2.hideError();
             });
-            this.setFirst();
         },
         edit: function edit(todo) {
             this.currentTodo = todo;
@@ -12190,7 +12195,6 @@ module.exports = function spread(callback) {
             }).catch(function (error) {
                 _this3.error = error.response.data;
                 _this3.hideForm();
-
                 _this3.hideError();
             });
         },
@@ -12200,10 +12204,10 @@ module.exports = function spread(callback) {
             var index = this.todos.indexOf(todo);
 
             axios.delete('/todo/' + todo.id).then(function () {
-                return _this4.todos.splice(index, 1);
+                _this4.todos.splice(index, 1);
+                _this4.setFirst();
+                _this4.getToDos();
             });
-
-            this.setFirst();
         },
         setProgress: function setProgress(todo, progress) {
             todo.progress = progress;
@@ -12235,7 +12239,7 @@ module.exports = function spread(callback) {
             };
 
             axios.post('/move', data).then(function () {
-                return _this5.getToDos();
+                _this5.getToDos();
             });
         },
         hideForm: function hideForm() {
@@ -14710,7 +14714,7 @@ exports = module.exports = __webpack_require__(34)();
 
 
 // module
-exports.push([module.i, "\nul > li {\n    list-style-type: none;\n}\nli button {\n    margin-right: 1em;\n}\n#finish {\n    margin-right: 1em;\n}\nspan {\n    display: block;\n}\n.in-progress {\n    font-style: italic;\n    color: green;\n}\n.finished {\n    text-decoration: line-through;\n}\nspan > i:hover {\n    cursor: pointer;\n}\nli {\n    border: 1px solid #cecece;\n    padding: 1em;\n    margin: 1em;\n}\n#edit-btn {\n    width: 58.8px;\n}\n", ""]);
+exports.push([module.i, "\nul > li {\n    list-style-type: none;\n}\nli button {\n    margin-right: 1em;\n}\n#finish {\n    margin-right: 1em;\n}\nspan {\n    display: block;\n}\n.in-progress {\n    font-style: italic;\n    color: green;\n}\n.finished {\n    text-decoration: line-through;\n}\nspan > i:hover {\n    cursor: pointer;\n}\nli {\n    border: 1px solid #cecece;\n    padding: 1em;\n    margin: 1em;\n}\n#edit-btn {\n    width: 58.8px;\n}\nul > li span:hover {\n    color: green;\n}\n", ""]);
 
 // exports
 
@@ -32077,7 +32081,7 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
         }
       }
     }, [_c('i', {
-      staticClass: "fa fa-angle-up",
+      staticClass: "fa fa-angle-up fa-2x",
       attrs: {
         "aria-hidden": "true"
       }
@@ -32094,7 +32098,7 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
         }
       }
     }, [_c('i', {
-      staticClass: "fa fa-angle-down",
+      staticClass: "fa fa-angle-down fa-2x",
       attrs: {
         "aria-hidden": "true"
       }

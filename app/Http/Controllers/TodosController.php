@@ -27,8 +27,10 @@ class TodosController extends Controller
     {
         $todo = new Todo;
 
-        if ($todo->orderBy('order')->get()->last()) {
-           $order = $todo->orderBy('order')->get()->last()->order + 1;
+        $last = $todo->orderBy('order')->get()->last();
+
+        if ($last) {
+           $order = $last->order + 1;
         } else {
             $order = 0;
         }

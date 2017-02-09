@@ -37,9 +37,9 @@
                 v-for="todo in todos">
                 <div class="row">
                     <div class="col-md-1">
-                        <span @click="move(todo, 'up')" v-show="! upArrow(todo.order)"><i class="fa fa-angle-up" aria-hidden="true"></i></span>
+                        <span @click="move(todo, 'up')" v-show="! upArrow(todo.order)"><i class="fa fa-angle-up fa-2x" aria-hidden="true"></i></span>
                         <span @click="move(todo, 'down')" 
-                            v-show="! downArrow(todo.order)"><i class="fa fa-angle-down" aria-hidden="true"></i></span>
+                            v-show="! downArrow(todo.order)"><i class="fa fa-angle-down fa-2x" aria-hidden="true"></i></span>
                     </div>
 
                     <div class="col-md-11">
@@ -88,6 +88,12 @@
             this.setFirst()
         },
 
+        watch: {
+            first() {
+                this.setFirst()
+            }
+        },
+
         methods: {
             setFirst() {
                 axios.post('api/todos').then(response => this.first = response.data.shift().order);
@@ -109,7 +115,6 @@
                             this.hideError();
 
                         });
-                this.setFirst()
             },
 
             edit(todo) {
@@ -131,7 +136,6 @@
                         .catch((error) => { 
                             this.error = error.response.data;
                             this.hideForm();
-
                             this.hideError();
                         });
             },
@@ -139,11 +143,12 @@
             destroy(todo) {
                 let index = this.todos.indexOf(todo);
               
-
                 axios.delete(`/todo/${todo.id}`)
-                    .then(() => this.todos.splice(index, 1));
-
-                this.setFirst();
+                    .then(() => {
+                        this.todos.splice(index, 1);
+                        this.setFirst();
+                        this.getToDos();
+                        });
             },
 
             setProgress(todo, progress) {
@@ -179,7 +184,9 @@
                 };
 
                 axios.post('/move', data)
-                    .then(() => this.getToDos());
+                    .then(() => {
+                        this.getToDos();
+                    });
             },
 
             hideForm() {
@@ -245,5 +252,9 @@
 
     #edit-btn {
         width: 58.8px;
+    }
+
+    ul > li span:hover {
+        color: green;
     }
 </style>

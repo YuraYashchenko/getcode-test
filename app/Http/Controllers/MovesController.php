@@ -34,6 +34,6 @@ class MovesController extends Controller
  			$downTodo->update([
  					'order' => $downTodo->order + 1 
  				]);
- 		}
+ 		} 
     }
 }

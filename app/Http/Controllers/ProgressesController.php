@@ -10,7 +10,7 @@ class ProgressesController extends Controller
     
     public function setProgress(Request $request)
     {
-    	$todo = Todo::find(
+    	$todo = Todo::findOrFail(
     			$request->input('todoId')
     		);
 
