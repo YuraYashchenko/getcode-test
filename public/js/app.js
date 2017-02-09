@@ -12115,6 +12115,19 @@ module.exports = function spread(callback) {
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 /* harmony default export */ __webpack_exports__["default"] = {
     data: function data() {
@@ -12122,20 +12135,24 @@ module.exports = function spread(callback) {
             todos: [],
             error: false,
             todo: '',
-            newName: ''
+            newName: '',
+            first: false
         };
     },
     created: function created() {
-        var _this = this;
-
-        axios.post('api/todos').then(function (_ref) {
-            var data = _ref.data;
-            return _this.todos = data;
-        });
+        this.getToDos();
+        this.setFirst();
     },
 
 
     methods: {
+        setFirst: function setFirst() {
+            var _this = this;
+
+            axios.post('api/todos').then(function (response) {
+                return _this.first = response.data.shift().order;
+            });
+        },
         create: function create() {
             var _this2 = this;
 
@@ -12143,18 +12160,18 @@ module.exports = function spread(callback) {
                 'name': this.todo
             };
 
-            axios.post('/todo', todo).then(function (_ref2) {
-                var data = _ref2.data;
+            axios.post('/todo', todo).then(function (_ref) {
+                var data = _ref.data;
 
-                _this2.todos.push(data);
+                _this2.getToDos();
                 _this2.todo = '';
             }).catch(function (error) {
                 _this2.error = error.response.data;
                 _this2.hideError();
             });
+            this.setFirst();
         },
         edit: function edit(todo) {
-            console.log(todo);
             this.currentTodo = todo;
             $('.modal').modal('show');
             this.newName = todo.name;
@@ -12177,10 +12194,15 @@ module.exports = function spread(callback) {
             });
         },
         destroy: function destroy(todo) {
-            var index = this.todos.indexOf(todo);
-            this.todos.splice(index, 1);
+            var _this4 = this;
 
-            axios.delete('/todo/' + todo.id);
+            var index = this.todos.indexOf(todo);
+
+            axios.delete('/todo/' + todo.id).then(function () {
+                return _this4.todos.splice(index, 1);
+            });
+
+            this.setFirst();
         },
         setProgress: function setProgress(todo, progress) {
             todo.progress = progress;
@@ -12203,15 +12225,40 @@ module.exports = function spread(callback) {
         finish: function finish(todo) {
             this.setProgress(todo, 'finished');
         },
+        move: function move(todo, direction) {
+            var _this5 = this;
+
+            var data = {
+                'id': todo.id,
+                'direction': direction
+            };
+
+            axios.post('/move', data).then(function () {
+                return _this5.getToDos();
+            });
+        },
         hideForm: function hideForm() {
             $('.modal').modal('hide');
         },
+        downArrow: function downArrow(order) {
+            return order == 0;
+        },
+        upArrow: function upArrow(order) {
+            return order == this.first;
+        },
         hideError: function hideError() {
-            var _this4 = this;
+            var _this6 = this;
 
             setTimeout(function () {
-                return _this4.error = false;
+                return _this6.error = false;
             }, 1000);
+        },
+        getToDos: function getToDos() {
+            var _this7 = this;
+
+            axios.post('api/todos').then(function (response) {
+                _this7.todos = response.data;
+            });
         }
     }
 };
@@ -14662,7 +14709,7 @@ exports = module.exports = __webpack_require__(34)();
 
 
 // module
-exports.push([module.i, "\nul > li {\n    list-style-type: none;\n}\nli > button{\n    margin-right: 1em;\n}\nspan {\n    display: block;\n}\n.in-progress {\n    font-style: italic;\n    color: green;\n}\n.finished {\n    text-decoration: line-through;\n}\n", ""]);
+exports.push([module.i, "\nul > li {\n    list-style-type: none;\n}\nli button {\n    margin-right: 1em;\n}\n#finish {\n    margin-right: 1em;\n}\nspan {\n    display: block;\n}\n.in-progress {\n    font-style: italic;\n    color: green;\n}\n.finished {\n    text-decoration: line-through;\n}\nspan > i:hover {\n    cursor: pointer;\n}\nli {\n    border: 1px solid #cecece;\n    padding: 1em;\n    margin: 1em;\n}\n#edit-btn {\n    width: 58.8px;\n}\n", ""]);
 
 // exports
 
@@ -31973,7 +32020,7 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
     attrs: {
       "for": "todo"
     }
-  }, [_vm._v("Create Task:")]), _vm._v(" "), _c('textarea', {
+  }, [_vm._v("Create Task:")]), _vm._v(" "), _c('input', {
     directives: [{
       name: "model",
       rawName: "v-model",
@@ -31982,9 +32029,8 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
     }],
     staticClass: "form-control",
     attrs: {
-      "name": "title",
-      "id": "todo",
-      "rows": "1"
+      "type": "text",
+      "name": "title"
     },
     domProps: {
       "value": _vm._s(_vm.todo)
@@ -32012,11 +32058,51 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
     staticClass: "list-group"
   }, _vm._l((_vm.todos), function(todo) {
     return _c('li', {
-      staticClass: "list-item",
-      class: {
-        'in-progress': _vm.inProgress(todo.progress), 'finished': _vm.finished(todo.progress)
+      staticClass: "list-item"
+    }, [_c('div', {
+      staticClass: "row"
+    }, [_c('div', {
+      staticClass: "col-md-1"
+    }, [_c('span', {
+      directives: [{
+        name: "show",
+        rawName: "v-show",
+        value: (!_vm.upArrow(todo.order)),
+        expression: "! upArrow(todo.order)"
+      }],
+      on: {
+        "click": function($event) {
+          _vm.move(todo, 'up')
+        }
       }
+    }, [_c('i', {
+      staticClass: "fa fa-angle-up",
+      attrs: {
+        "aria-hidden": "true"
+      }
+    })]), _vm._v(" "), _c('span', {
+      directives: [{
+        name: "show",
+        rawName: "v-show",
+        value: (!_vm.downArrow(todo.order)),
+        expression: "! downArrow(todo.order)"
+      }],
+      on: {
+        "click": function($event) {
+          _vm.move(todo, 'down')
+        }
+      }
+    }, [_c('i', {
+      staticClass: "fa fa-angle-down",
+      attrs: {
+        "aria-hidden": "true"
+      }
+    })])]), _vm._v(" "), _c('div', {
+      staticClass: "col-md-11"
     }, [_c('h3', {
+      class: {
+        'finished': _vm.finished(todo.progress), 'in-progress': _vm.inProgress(todo.progress)
+      },
       domProps: {
         "textContent": _vm._s(todo.name)
       }
@@ -32049,6 +32135,9 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
       }
     }, [_vm._v("Start")]), _vm._v(" "), _c('button', {
       staticClass: "btn btn-success btn-sm",
+      attrs: {
+        "id": "edit-btn"
+      },
       on: {
         "click": function($event) {
           _vm.edit(todo)
@@ -32061,7 +32150,7 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
           _vm.destroy(todo)
         }
       }
-    }, [_vm._v("Delete")])])
+    }, [_vm._v("Delete")])])])])
   }))])
 },staticRenderFns: [function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
   return _c('div', {

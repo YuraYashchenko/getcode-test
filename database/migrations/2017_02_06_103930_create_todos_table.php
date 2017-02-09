@@ -17,6 +17,7 @@ class CreateTodosTable extends Migration
             $table->increments('id');
             $table->string('name');
             $table->string('progress')->default('not_in_progress');
+            $table->integer('order');
             $table->timestamps();
         });
     }

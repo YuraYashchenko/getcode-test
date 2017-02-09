@@ -24,7 +24,7 @@
 
         <div class="form-group">
             <label for="todo">Create Task:</label>
-            <textarea name="title" id="todo" class="form-control" rows="1" v-model="todo"></textarea>
+            <input type="text" name="title" class="form-control" v-model="todo">
         </div>
 
         <div v-if="error" v-text="error.name[0]" class="alert alert-danger"></div>
@@ -33,25 +33,38 @@
 
         <h1>Tasks: </h1>
         <ul class="list-group">
-            <li class="list-item"  
-                :class="{'in-progress': inProgress(todo.progress), 'finished': finished(todo.progress)}" 
+            <li class="list-item"   
                 v-for="todo in todos">
-                <h3 v-text="todo.name"></h3><span 
-                    v-show="inProgress(todo.progress)">(In Progress)</span>
-       
-                <button class="pull-right btn btn-primary btn-sm" 
-                        :disabled="todo.progress === 'finished'"
-                        @click="finish(todo)">Finish</button>
+                <div class="row">
+                    <div class="col-md-1">
+                        <span @click="move(todo, 'up')" v-show="! upArrow(todo.order)"><i class="fa fa-angle-up" aria-hidden="true"></i></span>
+                        <span @click="move(todo, 'down')" 
+                            v-show="! downArrow(todo.order)"><i class="fa fa-angle-down" aria-hidden="true"></i></span>
+                    </div>
 
-                <button class="pull-right btn btn-primary btn-sm" 
-                        :disabled="inProgress(todo.progress)"  
-                        @click="start(todo)">Start</button>
-       
-                <button class="btn btn-success btn-sm" 
-                        @click="edit(todo)">Edit</button>
-       
-                <button class="btn btn-danger btn-sm" 
-                        @click="destroy(todo)">Delete</button>
+                    <div class="col-md-11">
+                        <h3 v-text="todo.name"
+                            :class="{'finished': finished(todo.progress), 'in-progress': inProgress(todo.progress)}"></h3><span 
+                            v-show="inProgress(todo.progress)">(In Progress)</span>
+               
+                        <button class="pull-right btn btn-primary btn-sm" 
+                                :disabled="todo.progress === 'finished'"
+                                @click="finish(todo)">Finish</button>
+
+                        <button class="pull-right btn btn-primary btn-sm" 
+                                :disabled="inProgress(todo.progress)"  
+                                @click="start(todo)">Start</button>
+               
+                        <button class="btn btn-success btn-sm" 
+                                id="edit-btn" 
+                                @click="edit(todo)">Edit</button>
+               
+                        <button class="btn btn-danger btn-sm" 
+                                @click="destroy(todo)">Delete</button>
+                    </div>
+                </div>
+                
+                
             </li>
         </ul>
     </div>
@@ -65,15 +78,21 @@
                 todos: [], 
                 error: false, 
                 todo: '',
-                newName: ''
+                newName: '',
+                first: false
             }
         },
 
         created() {
-            axios.post('api/todos').then(({data}) => this.todos = data);
+            this.getToDos();
+            this.setFirst()
         },
 
         methods: {
+            setFirst() {
+                axios.post('api/todos').then(response => this.first = response.data.shift().order);
+            },
+
             create() {
                 let todo = {
                     'name': this.todo
@@ -81,7 +100,7 @@
 
                 axios.post('/todo', todo)
                         .then(({data}) => { 
-                            this.todos.push(data);
+                            this.getToDos();
                             this.todo = '';
                         })
                         .catch((error) => {
@@ -89,10 +108,10 @@
                             this.hideError();
 
                         });
+                this.setFirst()
             },
 
             edit(todo) {
-                console.log(todo);
                 this.currentTodo = todo;
                 $('.modal').modal('show');
                 this.newName = todo.name;
@@ -118,9 +137,12 @@
 
             destroy(todo) {
                 let index = this.todos.indexOf(todo);
-                this.todos.splice(index, 1);
+              
 
-                axios.delete(`/todo/${todo.id}`);
+                axios.delete(`/todo/${todo.id}`)
+                    .then(() => this.todos.splice(index, 1));
+
+                this.setFirst()
             },
 
             setProgress(todo, progress) {
@@ -149,12 +171,36 @@
                 this.setProgress(todo, 'finished');
             },
 
+            move(todo, direction) {
+                let data = {
+                    'id': todo.id,
+                    'direction': direction
+                };
+
+                axios.post('/move', data)
+                    .then(() => this.getToDos());
+            },
+
             hideForm() {
                 $('.modal').modal('hide');
             },
 
+            downArrow(order) {
+                return order == 0;
+            },
+
+            upArrow(order) {
+                return order == this.first;
+            },
+  
             hideError() {
                 setTimeout(() => this.error = false, 1000);
+            },
+
+            getToDos() {
+                axios.post('api/todos').then((response) => {
+                    this.todos = response.data;
+                });
             }
         },
     }
@@ -164,7 +210,12 @@
     ul > li {
         list-style-type: none;
     }
-    li > button{
+
+    li button {
+        margin-right: 1em;
+    }
+
+    #finish {
         margin-right: 1em;
     }
 
@@ -179,5 +230,19 @@
 
     .finished {
         text-decoration: line-through;
+    }
+
+    span > i:hover {
+        cursor: pointer;
+    }
+
+    li {
+        border: 1px solid #cecece;
+        padding: 1em;
+        margin: 1em;
+    }
+
+    #edit-btn {
+        width: 58.8px;
     }
 </style>

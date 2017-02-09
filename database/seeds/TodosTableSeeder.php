@@ -1,5 +1,6 @@
 <?php
 
+use App\Todo;
 use Illuminate\Database\Seeder;
 
 class TodosTableSeeder extends Seeder
@@ -11,6 +12,7 @@ class TodosTableSeeder extends Seeder
      */
     public function run()
     {
+    	Todo::truncate();
         factory(App\Todo::class, 10)->create();
     }
 }
