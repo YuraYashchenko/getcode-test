@@ -102,6 +102,7 @@
                         .then(({data}) => { 
                             this.getToDos();
                             this.todo = '';
+                            this.setFirst();
                         })
                         .catch((error) => {
                             this.error = error.response.data
@@ -142,7 +143,7 @@
                 axios.delete(`/todo/${todo.id}`)
                     .then(() => this.todos.splice(index, 1));
 
-                this.setFirst()
+                this.setFirst();
             },
 
             setProgress(todo, progress) {

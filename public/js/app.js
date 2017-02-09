@@ -12165,6 +12165,7 @@ module.exports = function spread(callback) {
 
                 _this2.getToDos();
                 _this2.todo = '';
+                _this2.setFirst();
             }).catch(function (error) {
                 _this2.error = error.response.data;
                 _this2.hideError();
